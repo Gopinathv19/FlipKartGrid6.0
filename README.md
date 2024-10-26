@@ -34,5 +34,6 @@ YOLOv8: Utilized for detecting objects (products) in images, crucial for locatin
 EfficientNetB0: Used for classifying the freshness of detected products.
 PaddleOCR: Facilitates the extraction of text from images, acting as a standalone OCR server.
 RoBERTa & SpaCy: Used for text recognition, analysis, and processing, particularly in understanding brand names, product details, and context from extracted text.
+
 Fuzzy Logic: Applied for matching and verifying brand names from text data, ensuring accurate identification during the QC process.
 Flask: Used to set up a lightweight server for running the OCR model and serving text extraction requests.
