@@ -17,11 +17,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-# loading the yolo 's v8 model
+
+# loading the yolo model for the detection
 
 yolo_model = YOLO('yolov8n.pt')   
 
-# Load EfficientNet for classification
+ 
 def load_efficientnet_model(checkpoint_path, num_classes=3):
     model = models.efficientnet_b0(weights="IMAGENET1K_V1")
     num_ftrs = model.classifier[1].in_features
@@ -31,8 +32,13 @@ def load_efficientnet_model(checkpoint_path, num_classes=3):
     model.eval()
     return model
 
+# loading the efficient net model for the classification
+
 efficientnet_model = load_efficientnet_model('new1_bannana_efficientnet_layerupdated.pt', num_classes=3)
 
+
+
+# data transformation for classification
  
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -41,6 +47,9 @@ transform = transforms.Compose([
 ])
 
  
+
+ # predefined yolo classes
+
 COCO_CLASSES = [
     'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
     'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat',
@@ -54,7 +63,10 @@ COCO_CLASSES = [
     'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]
 
- 
+
+
+#classifying banana using the efficientnet 
+
 def classify_banana(image, model):
     image = transform(image).unsqueeze(0)
     with torch.no_grad():
@@ -63,21 +75,7 @@ def classify_banana(image, model):
     return predicted.item()
 
  
-def save_to_csv(freshness_data):
-    file_exists = os.path.isfile('freshness.csv')
-    with open('freshness.csv', 'a', newline='') as csvfile:
-        fieldnames = ['Banana_ID', 'Freshness', 'Shelf_Life']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        if not file_exists:
-            writer.writeheader()   
-        
-        for i, freshness in enumerate(freshness_data):
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            shelf_life = "1 week" if freshness == 0 else "0 days" if freshness == 1 else "2 weeks"
-            writer.writerow({'Banana_ID': timestamp, 'Freshness': {0: 'ripe', 1: 'rotten', 2: 'unripe'}[freshness], 'Shelf_Life': shelf_life})
-
- 
-# app creation using the tkinter ui elements  
+# Bananna freshness detection and Classification application 
 
 class BananaFreshnessApp:
     def __init__(self, root):
@@ -136,6 +134,31 @@ class BananaFreshnessApp:
         self.update()
 
 
+
+
+
+
+# saving the results obtained on the classification in a csv file
+
+def save_to_csv(freshness_data):
+    file_exists = os.path.isfile('freshness.csv')
+    with open('freshness.csv', 'a', newline='') as csvfile:
+        fieldnames = ['Banana_ID', 'Freshness', 'Shelf_Life']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()   
+        
+        for i, freshness in enumerate(freshness_data):
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            shelf_life = "1 week" if freshness == 0 else "0 days" if freshness == 1 else "2 weeks"
+            writer.writerow({'Banana_ID': timestamp, 'Freshness': {0: 'ripe', 1: 'rotten', 2: 'unripe'}[freshness], 'Shelf_Life': shelf_life})
+
+ 
+ 
+
+ 
+
+
 # graph for the freshness index of the banana    
 
     def plot_freshness(self, freshness_data):
@@ -185,7 +208,12 @@ class BananaFreshnessApp:
                 class_name = detected_class_names[i]
                 if class_name == "banana":
                     banana_detections.append(xyxy)
+
+
 # sending the isolated part of the banana to the efficient net maintaining high speed detection and classification
+
+
+
             freshness_data = []   
             if len(banana_detections) > 0:
                 for idx, xyxy in enumerate(banana_detections):
@@ -233,6 +261,9 @@ class BananaFreshnessApp:
         self.root.destroy()
 
  
+ 
+# main application 
+
 root = tk.Tk()  
 app = BananaFreshnessApp(root)
 root.protocol("WM_DELETE_WINDOW", app.on_closing)

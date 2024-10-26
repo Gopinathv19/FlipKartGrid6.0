@@ -1,3 +1,5 @@
+# importing the necessary packages
+
 import os
 import time
 import cv2
@@ -14,6 +16,7 @@ from transformers import pipeline
 import numpy as np
 from rapidfuzz import process 
 
+# loading the question answering model
 
 qa_pipeline = pipeline(
     "question-answering",
@@ -22,21 +25,24 @@ qa_pipeline = pipeline(
 )
 
 
- 
+ # loading the spacy model
+
 nlp = spacy.load("en_core_web_trf")
 
 
- 
+ # loading the yolo model
+
 model = YOLO('best.pt')
 
 
 
- 
+# global variables
 frame = None
 boxes = []
 cap = None
 
- 
+# brand product mapping  
+
 BaP={
     "fortune": ["rice bran health"],
     "elite": ["family wonder bread", "magic sweet bread"],
@@ -62,8 +68,12 @@ BaP={
 }
 
 
+# getting the count of the products and storing them in the python dictionary 
+
 product_counts = {}   
 
+
+# saving the regions of the intrest from the yolo model detection
  
 def save_rois_in_batches(current_frame, detected_boxes, output_dir):
     os.makedirs(output_dir, exist_ok=True)
@@ -81,6 +91,8 @@ def save_rois_in_batches(current_frame, detected_boxes, output_dir):
             saved_images.append(image_path)
     return saved_images
 
+# extracting the text from the ocr result
+
 def extract_text_from_ocr_result(ocr_result):
     extracted_texts = {}
     for item in ocr_result:
@@ -92,6 +104,8 @@ def extract_text_from_ocr_result(ocr_result):
             if extracted_text:
                 extracted_texts[image_path] = extracted_text
     return extracted_texts
+
+# performing ocr for the given image it is done by paddle ocr it is sended to the paddle server
 
 def perform_ocr(image_path):
     api_url = "http://localhost:5000/ocr"
@@ -109,6 +123,9 @@ def perform_ocr(image_path):
     except Exception as e:
         print(f"Error opening image file {image_path}: {e}")
         return {image_path: None}
+    
+
+# sending the roi concurrently to the ocr model in order to maintain the computational resource    
 
 def extract_text_concurrently(image_paths, output_json='output.json'):
     results = []
@@ -138,7 +155,9 @@ def extract_text_concurrently(image_paths, output_json='output.json'):
         except Exception as e:
             print(f"Error writing to {output_json}: {e}")
 
- 
+
+# fuccy logic for matching the best product
+
 def find_best_product(brand, ocr_text):
     normalized_text = ocr_text.lower()
     products = BaP[brand]
@@ -159,7 +178,7 @@ def find_best_product(brand, ocr_text):
     return None
 
 
- 
+ # fuccy logic for matching the best product brand
  
 def find_best_brand(ocr_text):
     normalized_text = ocr_text.lower()
@@ -181,6 +200,8 @@ def find_best_brand(ocr_text):
     return None
 
 
+# detection of the retail product sending the bounding box values
+
 def detect_products(current_frame, conf_threshold=0.5):
     results = model(current_frame)
     detected_boxes = []
@@ -200,6 +221,8 @@ def detect_products(current_frame, conf_threshold=0.5):
             }
             detected_boxes.append(box)
     return detected_boxes
+
+# starting the video stream 
 
 def start_video_stream():
     global frame, boxes, cap
@@ -225,6 +248,9 @@ def start_video_stream():
     except Exception as e:
         print(f"Error in starting video stream: {e}")
 
+# capturing the image for the ocr
+
+
 def capture_frame(output_json='output.json', output_dir='images'):
     global frame, boxes
     if frame is None or len(boxes) == 0:
@@ -234,6 +260,8 @@ def capture_frame(output_json='output.json', output_dir='images'):
     if image_paths:
         extract_text_concurrently(image_paths, output_json)
         messagebox.showinfo("Success", f"Captured and processed {len(image_paths)} images.")
+
+# function to get the ocr detail like the brand name and the product size and can be customized based on our needs
 
 def extract_ocr_details():
     try:
@@ -253,6 +281,8 @@ def extract_ocr_details():
         open('output.json', 'w').close()
     except Exception as e:
         messagebox.showerror("Error", f"Could not extract details: {e}")
+
+# function to validate expiry detail from the ocr result
 
 def validate_expiry_date_and_mrp():
     """
@@ -298,10 +328,11 @@ def validate_expiry_date_and_mrp():
         
         messagebox.showerror("Unexpected Error", f"An unexpected error occurred: {e}")
 
+
+# extracting the expiry date using the spacy        
+
 def extract_expiry_date_and_mrp(ocr_text):
-    """
-    Process the OCR text to extract the expiry date and MRP using spaCy's NER.
-    """
+ 
     new_text = preprocess_text(ocr_text)
     doc = nlp(new_text)
 
@@ -334,20 +365,14 @@ def extract_expiry_date_and_mrp(ocr_text):
 
 
 def preprocess_text(ocr_text):
-    """
-    Add a comma after every space in the OCR text to improve separation of entities.
-    This helps spaCy recognize dates and monetary values more effectively.
-    """
+ 
     return ", ".join(ocr_text.split())
 
 
 
 
 def parse_date(date_str):
-    """
-    Try to parse a date from the string using multiple date formats.
-    Also handles month/year formats by assuming the last day of the month.
-    """
+ 
     date_formats = ['%d/%m/%Y', '%d-%m-%Y', '%d.%m.%Y', '%d%b%Y', '%B %d, %Y', '%m/%Y', '%b %Y', '%B %Y']
 
     for fmt in date_formats:
@@ -364,9 +389,7 @@ def parse_date(date_str):
     return None
 
 def validate_expiry_date(expiry_date):
-    """
-    Check if the expiry date is in the future and return a message indicating its status.
-    """
+ 
     if expiry_date > datetime.now():
         return f"Expiry Date: {expiry_date.strftime('%Y-%m-%d')} - Valid"
     else:
