@@ -1,48 +1,34 @@
-# importing the necessary packages
-
 import os
 import time
 import cv2
 import json
 import requests
-import spacy
-import re
-from datetime import datetime,timedelta
 import tkinter as tk
 from tkinter import messagebox
 from concurrent.futures import ThreadPoolExecutor
 from ultralytics import YOLO
 from transformers import pipeline
 import numpy as np
-from rapidfuzz import process 
-
-# loading the question answering model
-
+from collections import defaultdict
+from sentence_transformers import SentenceTransformer, util
+ 
 qa_pipeline = pipeline(
     "question-answering",
     model="deepset/roberta-base-squad2",
     device=0   
 )
-
-
- # loading the spacy model
-
-nlp = spacy.load("en_core_web_trf")
-
-
- # loading the yolo model
-
+Emodel = SentenceTransformer('all-MiniLM-L6-v2')
 model = YOLO('best.pt')
 
 
 
-# global variables
+
+# Global variables to store the current frame and detected boxes
 frame = None
 boxes = []
 cap = None
 
-# brand product mapping  
-
+# Predefined list of brands and products for counting
 BaP={
     "fortune": ["rice bran health"],
     "elite": ["family wonder bread", "magic sweet bread"],
@@ -94,17 +80,40 @@ BaP={
 "cycle": ["Agarbathi"],
 "dheepam": ["Lamp Oil"],
 "cherry": ["blossom"],
-
-
 }
 
-# getting the count of the products and storing them in the python dictionary 
+# Precompute embeddings for products
+product_embeddings = {}
+product_to_brand = {}
 
-product_counts = {}   
+for brand, products in BaP.items():
+    for product in products:
+        embedding = Emodel.encode(product, convert_to_tensor=True)
+        product_embeddings[product] = embedding
+        product_to_brand[product] = brand
+
+# the dictionary to store the count of the product
+
+product_counts = defaultdict(int)
 
 
-# saving the regions of the intrest from the yolo model detection
+def find_closest_product(query, top_k=1):
+    query_embedding = Emodel.encode(query, convert_to_tensor=True)
+    similarities = {}
+
+    for product, embedding in product_embeddings.items():
+        similarity = util.pytorch_cos_sim(query_embedding, embedding).item()
+        similarities[product] = similarity
+
+    # Sort products by similarity
+    sorted_products = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+    return sorted_products[:top_k]
+
+
  
+
+              
+# Function to save ROIs detected by YOLO
 def save_rois_in_batches(current_frame, detected_boxes, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     saved_images = []
@@ -121,8 +130,6 @@ def save_rois_in_batches(current_frame, detected_boxes, output_dir):
             saved_images.append(image_path)
     return saved_images
 
-# extracting the text from the ocr result
-
 def extract_text_from_ocr_result(ocr_result):
     extracted_texts = {}
     for item in ocr_result:
@@ -134,8 +141,6 @@ def extract_text_from_ocr_result(ocr_result):
             if extracted_text:
                 extracted_texts[image_path] = extracted_text
     return extracted_texts
-
-# performing ocr for the given image it is done by paddle ocr it is sended to the paddle server
 
 def perform_ocr(image_path):
     api_url = "http://localhost:5000/ocr"
@@ -153,9 +158,6 @@ def perform_ocr(image_path):
     except Exception as e:
         print(f"Error opening image file {image_path}: {e}")
         return {image_path: None}
-    
-
-# sending the roi concurrently to the ocr model in order to maintain the computational resource    
 
 def extract_text_concurrently(image_paths, output_json='output.json'):
     results = []
@@ -185,53 +187,6 @@ def extract_text_concurrently(image_paths, output_json='output.json'):
         except Exception as e:
             print(f"Error writing to {output_json}: {e}")
 
-
-# fuccy logic for matching the best product
-
-def find_best_product(brand, ocr_text):
-    normalized_text = ocr_text.lower()
-    products = BaP[brand]
-
- 
-    for product in products:
-        if product.lower() in normalized_text:
-            print(f"Direct or partial match found for product: {product}")
-            return product
-
- 
-    best_match = process.extractOne(normalized_text, products)   
-    if best_match and len(best_match)>=2:   
-        product, score = best_match[:2]  
-        if score > 60:   
-            print(f"Fuzzy match found for product: {product} with score: {score}")
-            return product
-    return None
-
-
- # fuccy logic for matching the best product brand
- 
-def find_best_brand(ocr_text):
-    normalized_text = ocr_text.lower()
-    brands = list(BaP.keys())
-
- 
-    for brand in brands:
-        if brand.lower() in normalized_text:
-            print(f"Direct match found for brand: {brand}")
-            return brand
-
- 
-    best_match = process.extractOne(normalized_text, brands)   
-    if best_match and len(best_match)>=2:  
-        brand, score = best_match[:2]   
-        if score > 60:   
-            print(f"Fuzzy match found for brand: {brand} with score: {score}")
-            return brand
-    return None
-
-
-# detection of the retail product sending the bounding box values
-
 def detect_products(current_frame, conf_threshold=0.5):
     results = model(current_frame)
     detected_boxes = []
@@ -251,8 +206,6 @@ def detect_products(current_frame, conf_threshold=0.5):
             }
             detected_boxes.append(box)
     return detected_boxes
-
-# starting the video stream 
 
 def start_video_stream():
     global frame, boxes, cap
@@ -278,9 +231,6 @@ def start_video_stream():
     except Exception as e:
         print(f"Error in starting video stream: {e}")
 
-# capturing the image for the ocr
-
-
 def capture_frame(output_json='output.json', output_dir='images'):
     global frame, boxes
     if frame is None or len(boxes) == 0:
@@ -290,8 +240,6 @@ def capture_frame(output_json='output.json', output_dir='images'):
     if image_paths:
         extract_text_concurrently(image_paths, output_json)
         messagebox.showinfo("Success", f"Captured and processed {len(image_paths)} images.")
-
-# function to get the ocr detail like the brand name and the product size and can be customized based on our needs
 
 def extract_ocr_details():
     try:
@@ -312,14 +260,12 @@ def extract_ocr_details():
     except Exception as e:
         messagebox.showerror("Error", f"Could not extract details: {e}")
 
-# function to validate expiry detail from the ocr result
-
 def validate_expiry_date_and_mrp():
     """
     Load OCR data, extract expiry date and MRP, display results, and clear the OCR data.
     """
     try:
-         
+        # Load OCR data from the JSON file
         with open('output.json', 'r', encoding='utf-8') as f:
             ocr_data = json.load(f)
 
@@ -328,7 +274,7 @@ def validate_expiry_date_and_mrp():
 
         ocr_text = " ".join(ocr_data.values())   
 
-        
+       
         expiry_message, mrp_message = extract_expiry_date_and_mrp(ocr_text)
 
  
@@ -339,13 +285,13 @@ def validate_expiry_date_and_mrp():
         open('output.json', 'w').close()
 
     except ValueError as ve:
-       
+        
         messagebox.showerror("Validation Error", str(ve))
 
-        
+         
         messagebox.showinfo("Partial Validation Results", f"{expiry_message}\n{mrp_message}")
 
-       
+         
         open('output.json', 'w').close()
 
     except FileNotFoundError:
@@ -355,79 +301,29 @@ def validate_expiry_date_and_mrp():
         messagebox.showerror("Data Error", "Failed to decode JSON data from the OCR file.")
 
     except Exception as e:
-        
+         
         messagebox.showerror("Unexpected Error", f"An unexpected error occurred: {e}")
 
-
-# extracting the expiry date using the spacy        
-
 def extract_expiry_date_and_mrp(ocr_text):
+    """
+    Send OCR text to the Flask server for expiry date and MRP extraction.
+    """
+    api_url = "http://localhost:5001/extract_expiry_and_mrp"
+    try:
+        response = requests.post(api_url, json={"ocr_text": ocr_text})
+        response.raise_for_status()
+        result = response.json()
+
+        expiry_message = result.get("expiry_message", "No expiry information.")
+        mrp_message = result.get("mrp_message", "No MRP information.")
+
+        return expiry_message, mrp_message
+
+    except requests.RequestException as e:
+        return f"Error in connecting to Flask server: {e}", "Error in connecting to Flask server"
  
-    new_text = preprocess_text(ocr_text)
-    doc = nlp(new_text)
 
-    dates = []
-    mrp = None
-
-    
-    for ent in doc.ents:
-        print(f"Entity: {ent.text}, Label: {ent.label_}")   
-        if ent.label_ == "DATE":
-            parsed_date = parse_date(ent.text)
-            if parsed_date:
-                dates.append(parsed_date)
-        elif ent.label_ == "CARDINAL" and mrp is None:
-            mrp = ent.text  
-
-    print(f"Extracted Dates: {dates}")   
-
-   
-    if dates:
-        expiry_date = max(dates)
-        expiry_message = validate_expiry_date(expiry_date)
-    else:
-        expiry_message = "No valid expiry date found."
-
-    mrp_message = f"MRP: {mrp}" if mrp else "MRP not found."
-
-    return expiry_message, mrp_message
-
-
-
-def preprocess_text(ocr_text):
- 
-    return ", ".join(ocr_text.split())
-
-
-
-
-def parse_date(date_str):
- 
-    date_formats = ['%d/%m/%Y', '%d-%m-%Y', '%d.%m.%Y', '%d%b%Y', '%B %d, %Y', '%m/%Y', '%b %Y', '%B %Y']
-
-    for fmt in date_formats:
-        try:
-           
-            if fmt in ['%m/%Y', '%b %Y', '%B %Y']:
-                date_obj = datetime.strptime(date_str, fmt)
-                last_day_of_month = (date_obj.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-                return last_day_of_month
-            else:
-                return datetime.strptime(date_str, fmt)
-        except ValueError:
-            continue
-    return None
-
-def validate_expiry_date(expiry_date):
- 
-    if expiry_date > datetime.now():
-        return f"Expiry Date: {expiry_date.strftime('%Y-%m-%d')} - Valid"
-    else:
-        return f"Expiry Date: {expiry_date.strftime('%Y-%m-%d')} - Expired"
-
-
-
- 
+# Predefined expected product counts
 expected_counts = {
  "mutton masala" : 1,
  "chicken masala":1,
@@ -437,7 +333,7 @@ expected_counts = {
 def validate_counts():
     global product_counts
 
-    
+     
     validation_results = []
 
     for product, counted in product_counts.items():
@@ -454,54 +350,47 @@ def validate_counts():
         messagebox.showinfo("Count Validation", "No products counted.")
 
 
-
-
- 
 def count_products():
     global product_counts
 
     try:
-         
+        
         with open('output.json', 'r', encoding='utf-8') as f:
             ocr_data = json.load(f)
 
-        
+        # Clear existing product counts
         product_counts.clear()
 
-        
+        # Iterate through each OCR text extracted from images
         for image_path, text in ocr_data.items():
-           
-            normalized_text = text.lower()
+            closest_products = find_closest_product(text)
 
-             
-            brand = find_best_brand(normalized_text)
-            if brand:
-              
-                product = find_best_product(brand, normalized_text)
-                if product:
-                
-                    product_counts[product] = product_counts.get(product, 0) + 1
-                    print(f"Identified product: {product} for brand: {brand}")   
+            for product, similarity in closest_products:
+                if similarity > 0.7:  # Use a threshold for valid matches
+                    product_counts[product] += 1
+                    print(f"Matched Product: {product} (Similarity: {similarity:.2f})")
                 else:
-                    print(f"No product match found for brand: {brand}")
-            else:
-                print(f"No brand match found in text: {normalized_text}")
+                    print(f"No close match found for OCR text: {text}")
 
-      
-        count_message = "\n".join([f"Brand: {brand}, Product: {product}, Count: {count}" 
-                                    for product, count in product_counts.items() 
-                                    for brand in BaP if product in BaP[brand]])   
+        # Display results with brand and product information
+        count_message = "\n".join(
+            [
+                f"Brand: {product_to_brand[product]}, Product: {product}, Count: {count}"
+                for product, count in product_counts.items()
+            ]
+        )
         if count_message:
             messagebox.showinfo("Product Count", f"Detected Products:\n{count_message}")
         else:
             messagebox.showinfo("Product Count", "No products detected.")
 
-       
+        # Clear the OCR data in the JSON file after counting is complete
         with open('output.json', 'w') as f:
             json.dump({}, f)
 
     except Exception as e:
         messagebox.showerror("Error", f"Could not count products: {e}")
+
 
 def quit_application():
     global cap
@@ -515,7 +404,7 @@ def quit_application():
         root.quit()
         root.destroy()
 
- 
+# Set up the GUI using Tkinter
 root = tk.Tk()
 root.title("YOLOv8 Object Detection and OCR")
 root.geometry("500x600")
