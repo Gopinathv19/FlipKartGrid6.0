@@ -1,7 +1,7 @@
 #### **Step 1: Set Up the SpaCy Application**
 1. Navigate to the `SpacyServer` folder:
    ```bash
-   cd spacy
+   cd SpacyServer
    ```
 2. Create a virtual environment and install requirements:
    ```bash
@@ -14,4 +14,3 @@
 3. Start the SpaCy server by running:
    ```bash
    python spacyServerTestApp.py
-   ```   

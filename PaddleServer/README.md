@@ -1,7 +1,7 @@
 #### **Step 2: Set Up the PaddleOCR Application**
 1. Navigate to the `PaddleServer` folder:
    ```bash
-   cd paddleocr
+   cd PaddleServer
    ```
 2. Create a virtual environment and install requirements:
    ```bash

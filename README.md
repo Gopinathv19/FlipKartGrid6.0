@@ -89,6 +89,15 @@ This repository includes three independent applications—**SpaCy**, **PaddleOCR
 
 ---
 
+### **Clone the Repository**
+
+```bash
+git clone https://github.com/Gopinathv19/FlipKartGrid6.0.git
+
+```
+
+---
+
 ### **Directory Structure**
 
 1. **SpaCy Application**  
@@ -112,7 +121,7 @@ Each application has its own dependencies, and it's essential to create separate
 #### **Step 1: Set Up the SpaCy Application**
 1. Navigate to the `SpacyServer` folder:
    ```bash
-   cd spacy
+   cd SpacyServer
    ```
 2. Create a virtual environment and install requirements:
    ```bash
@@ -130,7 +139,7 @@ Each application has its own dependencies, and it's essential to create separate
 #### **Step 2: Set Up the PaddleOCR Application**
 1. Navigate to the `PaddleServer` folder:
    ```bash
-   cd paddleocr
+   cd PaddleServer
    ```
 2. Create a virtual environment and install requirements:
    ```bash
@@ -148,9 +157,9 @@ Each application has its own dependencies, and it's essential to create separate
 ---
 
 #### **Step 3: Set Up the QC Process Automation Application**
-1. Navigate to the `qc_process_automation` folder:  
+1. Navigate to the `QCprocessAutomation` folder:  
    ```bash
-   cd qc_process_automation
+   cd QCprocessAutomation
    ```
 2. Create a virtual environment and install requirements:  
    ```bash

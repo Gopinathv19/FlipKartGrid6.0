@@ -1,7 +1,7 @@
 #### **Step 3: Set Up the QC Process Automation Application**
-1. Navigate to the `qc_process_automation` folder:  
+1. Navigate to the `QCprocessAutomation` folder:  
    ```bash
-   cd qc_process_automation
+   cd QCprocessAutomation
    ```
 2. Create a virtual environment and install requirements:  
    ```bash
@@ -15,3 +15,5 @@
    ```bash
    python QCprocessAutomation.py
    ```
+
+---
