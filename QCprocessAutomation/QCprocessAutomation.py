@@ -18,6 +18,7 @@ qa_pipeline = pipeline(
     device=0   
 )
 Emodel = SentenceTransformer('all-MiniLM-L6-v2')
+
 model = YOLO('best.pt')
 
 

@@ -4,7 +4,85 @@ This repository contains the code and resources for a smart quality testing syst
 
 **Project Overview**
 
-The goal of this project is to create a cost-effective, intelligent system capable of analyzing product quality, extracting text information from packaging, and matching brand details, all with the use of a single camera. The main applications include:
+The goal of this project is to create a cost-effective, intelligent system capable of analyzing product quality, extracting text information from packaging, and matching brand details, all with the use of a single camera.
+
+
+Here's a polished and visually appealing version of your "How to Run the Project" section for your GitHub README file:  
+
+---
+
+## **How to Run the Project**
+
+### **Application 1: Freshness Detection**
+
+Follow these steps to set up and run the Freshness Detection module.
+
+---
+
+### **Step 1: Clone the Repository**
+
+```bash
+git clone https://github.com/Gopinathv19/FlipKartGrid6.0.git
+cd FreshnessDetection
+```
+
+---
+
+### **Step 2: Set Up the Virtual Environment and Install Requirements**
+
+Create a virtual environment (optional but recommended) and install all required dependencies:  
+```bash
+# Create a virtual environment (optional)
+python -m venv venv
+source venv/bin/activate    # On Linux/MacOS
+venv\Scripts\activate       # On Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+### **Step 3: Set Up the MySQL Database**
+
+Set up a **MySQL database** and create the table with the schema below:  
+
+```sql
+CREATE TABLE FreshnessData (
+    Sl_no INT AUTO_INCREMENT PRIMARY KEY,
+    Timestamp DATETIME NOT NULL,
+    Produce VARCHAR(50) NOT NULL,
+    Freshness VARCHAR(20) NOT NULL,
+    Expected_Life_Span_Days INT NOT NULL
+);
+```
+
+Ensure your database connection details (username, password, host, and database name) are configured correctly in the code.
+
+---
+
+### **Step 4: Run the Application**
+
+Run the application using **Streamlit** from the command line:  
+
+```bash
+streamlit run bananaFreshnessDetection.py
+```
+
+---
+
+### **Expected Output**
+
+- The application will launch in your default web browser.  
+- Turn on the camera permission in the browser  the system will classify their freshness, display results, and store data in the MySQL database.  
+
+--- 
+
+ 
+
+
+
+
 
 **Freshness Detection:** Detecting the freshness of products using image classification.
 Quality Control (QC) Process Automation: Automating QC checks such as reading expiry dates, identifying brands, and counting products.
@@ -30,10 +108,15 @@ The server is designed to be integrated with other modules, providing text data 
 **Technologies Used: ** Python, PaddleOCR, Flask (for server setup).
 
 **Key Technologies**
-YOLOv8: Utilized for detecting objects (products) in images, crucial for locating products and regions of interest on packaging.
-EfficientNetB0: Used for classifying the freshness of detected products.
-PaddleOCR: Facilitates the extraction of text from images, acting as a standalone OCR server.
-RoBERTa & SpaCy: Used for text recognition, analysis, and processing, particularly in understanding brand names, product details, and context from extracted text.
 
-Fuzzy Logic: Applied for matching and verifying brand names from text data, ensuring accurate identification during the QC process.
-Flask: Used to set up a lightweight server for running the OCR model and serving text extraction requests.
+**YOLOv8:** Utilized for detecting objects (products) in images, crucial for locating products and regions of interest on packaging.
+
+**EfficientNetB0:** Used for classifying the freshness of detected products.
+
+**PaddleOCR:** Facilitates the extraction of text from images, acting as a standalone OCR server.
+
+**SpaCy:** Used for text recognition, analysis, and processing, particularly in understanding brand names, product details, and context from extracted text.
+
+**Fuzzy Logic:** Applied for matching and verifying brand names from text data, ensuring accurate identification during the QC process.
+
+**Flask:** Used to set up a lightweight server for running the OCR model and serving text extraction requests.
