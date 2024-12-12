@@ -129,7 +129,9 @@ Each application has its own dependencies, and it's essential to create separate
    source spacy_env/bin/activate    # On Linux/MacOS
    spacy_env\Scripts\activate       # On Windows
 
-   pip install -r requirements.txt
+   pip install spacy
+
+   python -m spacy download en_core_web_sm
    ```
 3. Start the SpaCy server by running:
    ```bash
@@ -147,7 +149,14 @@ Each application has its own dependencies, and it's essential to create separate
    source paddle_env/bin/activate    # On Linux/MacOS
    paddle_env\Scripts\activate       # On Windows
 
-   pip install -r requirements.txt
+   git clone https://github.com/PaddlePaddle/PaddleOCR.git
+   cd PaddleOCR
+   pip install requirements.txt
+
+   cd ..
+
+   pip install paddlepaddle
+
    ```
 3. Start the PaddleOCR server by running:
    ```bash

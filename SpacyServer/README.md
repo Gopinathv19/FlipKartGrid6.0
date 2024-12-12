@@ -9,8 +9,11 @@
    source spacy_env/bin/activate    # On Linux/MacOS
    spacy_env\Scripts\activate       # On Windows
 
-   pip install -r requirements.txt
+   pip install spacy
+
+   python -m spacy download en_core_web_sm
    ```
 3. Start the SpaCy server by running:
    ```bash
    python spacyServerTestApp.py
+   ```

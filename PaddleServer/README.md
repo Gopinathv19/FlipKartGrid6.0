@@ -9,9 +9,18 @@
    source paddle_env/bin/activate    # On Linux/MacOS
    paddle_env\Scripts\activate       # On Windows
 
-   pip install -r requirements.txt
+   git clone https://github.com/PaddlePaddle/PaddleOCR.git
+   cd PaddleOCR
+   pip install requirements.txt
+
+   cd ..
+
+   pip install paddlepaddle
+
    ```
 3. Start the PaddleOCR server by running:
    ```bash
    python paddleTextExtraction.py
    ```
+
+---

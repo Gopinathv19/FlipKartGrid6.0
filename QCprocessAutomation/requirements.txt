@@ -1,0 +1,5 @@
+opencv  
+requests 
+ultralytics 
+transformers 
+sentence-transformers 
