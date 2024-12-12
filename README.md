@@ -1,4 +1,4 @@
-**Smart Quality Testing System for Flipkart GRID 6.0**
+## Smart Quality Testing System for Flipkart GRID 6.0 ## 
 
 This repository contains the code and resources for a smart quality testing system developed as part of the Flipkart GRID 6.0 competition. The project leverages computer vision and natural language processing to automate quality checks using camera vision technology without the need for extra hardware. It includes three main components: Freshness Detection, QC Process Automation, and a PaddleOCR Server for text extraction.
 
@@ -7,7 +7,7 @@ This repository contains the code and resources for a smart quality testing syst
 The goal of this project is to create a cost-effective, intelligent system capable of analyzing product quality, extracting text information from packaging, and matching brand details, all with the use of a single camera.
 
 
-Here's a polished and visually appealing version of your "How to Run the Project" section for your GitHub README file:  
+  
 
 ---
 
@@ -79,10 +79,119 @@ streamlit run bananaFreshnessDetection.py
 --- 
 
  
+### **Application 2: QC Process Automation**
+
+---
+
+## **Note on Running SpaCy and PaddleOCR Applications**
+
+This repository includes three independent applications—**SpaCy**, **PaddleOCR**, and **QCprocessAutomation**—designed to run in separate environments simultaneously. Follow the steps below to set up and run them correctly.
+
+---
+
+### **Directory Structure**
+
+1. **SpaCy Application**  
+   - Located in the `SpacyServer` folder.  
+   - Handles NLP tasks such as MRP and DATE recognition and processing.  
+
+2. **PaddleOCR Application**  
+   - Located in the `PaddleServer` folder.  
+   - Facilitates OCR tasks for extracting text from images.
+
+3. **QC Process Automation Application**  
+   - Located in the `QCprocessAutomation` folder.  
+   - Automates quality control tasks like product brand matching and data analysis.
+
+---
+
+### **Environment Setup**
+
+Each application has its own dependencies, and it's essential to create separate virtual environments for them.
+
+#### **Step 1: Set Up the SpaCy Application**
+1. Navigate to the `SpacyServer` folder:
+   ```bash
+   cd spacy
+   ```
+2. Create a virtual environment and install requirements:
+   ```bash
+   python -m venv spacy_env
+   source spacy_env/bin/activate    # On Linux/MacOS
+   spacy_env\Scripts\activate       # On Windows
+
+   pip install -r requirements.txt
+   ```
+3. Start the SpaCy server by running:
+   ```bash
+   python spacyServerTestApp.py
+   ```
+
+#### **Step 2: Set Up the PaddleOCR Application**
+1. Navigate to the `PaddleServer` folder:
+   ```bash
+   cd paddleocr
+   ```
+2. Create a virtual environment and install requirements:
+   ```bash
+   python -m venv paddle_env
+   source paddle_env/bin/activate    # On Linux/MacOS
+   paddle_env\Scripts\activate       # On Windows
+
+   pip install -r requirements.txt
+   ```
+3. Start the PaddleOCR server by running:
+   ```bash
+   python paddleTextExtraction.py
+   ```
+
+---
+
+#### **Step 3: Set Up the QC Process Automation Application**
+1. Navigate to the `qc_process_automation` folder:  
+   ```bash
+   cd qc_process_automation
+   ```
+2. Create a virtual environment and install requirements:  
+   ```bash
+   python -m venv qc_env
+   source qc_env/bin/activate    # On Linux/MacOS
+   qc_env\Scripts\activate       # On Windows
+
+   pip install -r requirements.txt
+   ```
+3. Run the QC Process Automation application:  
+   ```bash
+   python QCprocessAutomation.py
+   ```
+
+---
 
 
+### **Usage Instructions**
+
+1. Ensure that **all three virtual environments** are set up and activated in their respective directories.  
+2. Start the servers/applications individually:
+   - **SpaCy Application:** Run `spacyServerTestApp.py`.  
+   - **PaddleOCR Application:** Run `paddleTextExtraction.py`.  
+   - **QC Process Automation Application:** Run `QCprocessAutomation.py`.  
+3. Ensure proper configuration of server ports to avoid conflicts.
+
+---
+
+### **Key Notes**
+
+- Each application must run in its **own environment** to avoid dependency conflicts.  
+- Verify that the dependencies specified in the `requirements.txt` file for each folder are installed correctly.  
+
+This modular setup ensures smooth execution of all applications, working seamlessly together to achieve the system's objectives. If you encounter any issues, refer to the respective folders for troubleshooting guides.  
+
+--- 
 
 
+---
+
+### About the Application
 
 **Freshness Detection:** Detecting the freshness of products using image classification.
 Quality Control (QC) Process Automation: Automating QC checks such as reading expiry dates, identifying brands, and counting products.
