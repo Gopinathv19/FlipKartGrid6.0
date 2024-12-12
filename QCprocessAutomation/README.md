@@ -13,7 +13,7 @@
    ```
 3. Run the QC Process Automation application:  
    ```bash
-   python QCprocessAutomation.py
+    Execute the python note book cell by cell
    ```
 
 ---

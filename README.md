@@ -180,7 +180,7 @@ Each application has its own dependencies, and it's essential to create separate
    ```
 3. Run the QC Process Automation application:  
    ```bash
-   python QCprocessAutomation.py
+   Execute the note book cell by cell 
    ```
 
 ---
